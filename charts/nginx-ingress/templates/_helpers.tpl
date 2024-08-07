@@ -468,7 +468,7 @@ tls:
 features:
   - registration
   - nginx-counting
-  - metrics-sender
+  - metrics
   - dataplane-status
 extensions:
   - nginx-app-protect
