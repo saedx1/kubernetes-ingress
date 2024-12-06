@@ -14,6 +14,7 @@ This document explains how to install F5 NGINX Ingress Controller using [Helm](h
 - A [Kubernetes Version Supported by NGINX Ingress Controller](https://docs.nginx.com/nginx-ingress-controller/technical-specifications/#supported-kubernetes-versions)
 - Helm 3.0+.
 - If you’d like to use NGINX Plus:
+  - Get the NGINX Ingress Controller JWT and [create a license secret]({{< relref "installation/installing-nic/create-license-secret/" >}}).
   - Download the image using your NGINX Ingress Controller subscription certificate and key. View the [Get NGINX Ingress Controller from the F5 Registry]({{< relref "installation/nic-images/get-registry-image.md" >}}) topic.
   - The [Get the NGINX Ingress Controller image with JWT]({{< relref "installation/nic-images/get-image-using-jwt.md" >}}) topic describes how to use your subscription JWT token to get the image.
   - The [Build NGINX Ingress Controller]({{< relref "installation/build-nginx-ingress-controller.md" >}}) topic explains how to push an image to a private Docker registry.
@@ -27,7 +28,7 @@ NGINX Ingress Controller requires custom resource definitions (CRDs) installed i
 
 If you do not use the custom resources that require those CRDs (which corresponds to `controller.enableCustomResources` set to `false` and `controller.appprotect.enable` set to `false` and `controller.appprotectdos.enable` set to `false`), the installation of the CRDs can be skipped by specifying `--skip-crds` for the helm install command.
 
---- 
+---
 
 ### Upgrade the CRDs
 
@@ -287,7 +288,7 @@ The steps you should follow depend on the Helm release name:
 
 ## Run multiple NGINX Ingress Controllers
 
-If you are running NGINX Ingress Controller releases in your cluster with custom resources enabled, the releases will share a single version of the CRDs. 
+If you are running NGINX Ingress Controller releases in your cluster with custom resources enabled, the releases will share a single version of the CRDs.
 
 Ensure the NGINX Ingress Controller versions match the version of the CRDs. When uninstalling a release, ensure that you don’t remove the CRDs until there are no other NGINX Ingress Controller releases running in the cluster.
 
@@ -305,6 +306,17 @@ The following tables lists the configurable parameters of the NGINX Ingress Cont
 | **controller.kind** | The kind of the Ingress Controller installation - deployment or daemonset. | deployment |
 | **controller.annotations** | Allows for setting of `annotations` for deployment or daemonset. | {} |
 | **controller.nginxplus** | Deploys the Ingress Controller for NGINX Plus. | false |
+| **controller.mgmt.licenseTokenSecretName** | Configures the secret used in the [license_token](https://nginx.org/en/docs/ngx_mgmt_module.html#license_token) directive. This key assumes the secret is in the Namespace that NGINX Ingress Controller is deployed in. The secret must be of type `nginx.com/license` with the base64 encoded JWT in the `license.jwt` key. | license-token |
+| **controller.mgmt.enforceInitialReport** | Configures the [enforce_initial_report](https://nginx.org/en/docs/ngx_mgmt_module.html#enforce_initial_report) directive, which enables or disables the 180-day grace period for sending the initial usage report. | false |
+| **controller.mgmt.usageReport.endpoint** | Configures the endpoint of the [usage_report](https://nginx.org/en/docs/ngx_mgmt_module.html#usage_report) directive. This is used to configure the endpoint NGINX uses to send usage reports to NIM. | product.connect.nginx.com |
+| **controller.mgmt.usageReport.interval** | Configures the interval of the [usage_report](https://nginx.org/en/docs/ngx_mgmt_module.html#usage_report) directive. This specifies the frequency that usage reports are sent. This field takes an [NGINX time](https://nginx.org/en/docs/syntax.html). | 1h |
+| **controller.mgmt.sslVerify** | Configures the [ssl_verify](https://nginx.org/en/docs/ngx_mgmt_module.html#ssl_verify) directive, which enables or disables verification of the usage reporting endpoint certificate.  | true |
+| **controller.mgmt.resolver.ipv6** | Configures whether the mgmt block [resolver](https://nginx.org/en/docs/ngx_mgmt_module.html#resolver) directive will look up IPv6 addresses.  | true |
+| **controller.mgmt.resolver.valid** | Configures an [NGINX time](https://nginx.org/en/docs/syntax.html) that the mgmt block [resolver](https://nginx.org/en/docs/ngx_mgmt_module.html#resolver) directive will override the TTL value of responses from nameservers with.  | N/A |
+| **controller.mgmt.resolver.addresses** | Configures addresses used in the mgmt block [resolver](https://nginx.org/en/docs/ngx_mgmt_module.html#resolver) directive. This field takes a list of addresses. | N/A |
+| **controller.mgmt.sslCertificateSecretName** | Configures the secret used to create the `ssl_certificate` and `ssl_certificate_key` directives. This key assumes the secret is in the Namespace that NGINX Ingress Controller is deployed in. The secret must be of type `kubernetes.io/tls` | N/A |
+| **controller.mgmt.sslTrustedCertificateSecretName** | Configures the secret used to create the file(s) referenced the in [ssl_trusted_certifcate](https://nginx.org/en/docs/ngx_mgmt_module.html#ssl_trusted_certificate), and [ssl_crl](https://nginx.org/en/docs/ngx_mgmt_module.html#ssl_crl) directives. This key assumes the secret is in the Namespace that NGINX Ingress Controller is deployed in. The secret must be of type `nginx.org/ca`, where the `ca.crt` key contains a base64 encoded trusted cert, and the optional `ca.crl` key can contain a base64 encoded CRL. If the optional `ca.crl` key is supplied, it will configure the NGINX `ssl_crl` directive. | N/A |
+| **controller.mgmt.configMapName** | Allows changing the name of the MGMT config map. The name should not include a namespace| Autogenerated |
 | **controller.nginxReloadTimeout** | The timeout in milliseconds which the Ingress Controller will wait for a successful NGINX reload after a change or at the initial start. | 60000 |
 | **controller.hostNetwork** | Enables the Ingress Controller pods to use the host's network namespace. | false |
 | **controller.dnsPolicy** | DNS policy for the Ingress Controller pods. | ClusterFirst |
@@ -406,12 +418,12 @@ The following tables lists the configurable parameters of the NGINX Ingress Cont
 | **controller.appprotect.enforcer.host** | Host that the App Protect WAF v5 Enforcer runs on. | "127.0.0.1" |
 | **controller.appprotect.enforcer.port** | Port that the App Protect WAF v5 Enforcer runs on. | 50000 |
 | **controller.appprotect.enforcer.image** | The image repository of the App Protect WAF v5 Enforcer. | private-registry.nginx.com/nap/waf-enforcer |
-| **controller.appprotect.enforcer.tag** | The tag of the App Protect WAF v5 Enforcer. | "5.3.0" |
+| **controller.appprotect.enforcer.tag** | The tag of the App Protect WAF v5 Enforcer. | "5.4.0" |
 | **controller.appprotect.enforcer.digest** | The digest of the App Protect WAF v5 Enforcer. Takes precedence over tag if set. | "" |
 | **controller.appprotect.enforcer.pullPolicy** | The pull policy for the App Protect WAF v5 Enforcer image. | IfNotPresent |
 | **controller.appprotect.enforcer.securityContext** | The security context for App Protect WAF v5 Enforcer container. | {} |
 | **controller.appprotect.configManager.image** | The image repository of the App Protect WAF v5 Configuration Manager. | private-registry.nginx.com/nap/waf-config-mgr |
-| **controller.appprotect.configManager.tag** | The tag of the App Protect WAF v5 Configuration Manager. | "5.3.0" |
+| **controller.appprotect.configManager.tag** | The tag of the App Protect WAF v5 Configuration Manager. | "5.4.0" |
 | **controller.appprotect.configManager.digest** | The digest of the App Protect WAF v5 Configuration Manager. Takes precedence over tag if set. | "" |
 | **controller.appprotect.configManager.pullPolicy** | The pull policy for the App Protect WAF v5 Configuration Manager image. | IfNotPresent |
 | **controller.appprotect.configManager.securityContext** | The security context for App Protect WAF v5 Configuration Manager container. | {"allowPrivilegeEscalation":false,"runAsUser":101,"runAsNonRoot":true,"capabilities":{"drop":["all"]}} |
@@ -473,7 +485,7 @@ The following tables lists the configurable parameters of the NGINX Ingress Cont
 |**nginxAgent.instanceManager.tls.enable** | Enable TLS for Instance Manager connection. | true |
 |**nginxAgent.instanceManager.tls.skipVerify** | Skip certification verification for Instance Manager connection. | false |
 |**nginxAgent.instanceManager.tls.caSecret** | Name of `nginx.org/ca` secret used for verification of Instance Manager TLS. | "" |
-|**nginxAgent.instanceManager.tls.secret** | Name of `kubernetes.io/tls` secret with a TLS certificate and key for using mTLS between NGINX Agent and Instance Manager. See the NGINX Instance Manager [docs](https://docs.nginx.com/nginx-management-suite/admin-guides/configuration/secure-traffic/#mutual-client-certificate-auth-setup-mtls) and the NGINX Agent [docs](https://docs.nginx.com/nginx-agent/configuration/encrypt-communication/) for more details. | "" |
+|**nginxAgent.instanceManager.tls.secret** | Name of `kubernetes.io/tls` secret with a TLS certificate and key for using mTLS between NGINX Agent and Instance Manager. See the NGINX Instance Manager [docs](https://docs.nginx.com/nginx-instance-manager/system-configuration/secure-traffic/#mutual-client-certificate-authentication-setup-mtls) and the NGINX Agent [docs](https://docs.nginx.com/nginx-agent/configuration/encrypt-communication/) for more details. | "" |
 |**nginxAgent.syslog.host** | Address for NGINX Agent to run syslog listener. | 127.0.0.1 |
 |**nginxAgent.syslog.port** | Port for NGINX Agent to run syslog listener. | 1514 |
 |**nginxAgent.napMonitoring.collectorBufferSize** | Buffer size for collector. Will contain log lines and parsed log lines. | 50000 |
