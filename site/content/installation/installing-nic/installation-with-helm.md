@@ -1,8 +1,10 @@
 ---
-docs: DOCS-602
 title: Installation with Helm
 toc: true
 weight: 100
+type: how-to
+product: NIC
+docs: DOCS-602
 ---
 
 This document explains how to install F5 NGINX Ingress Controller using [Helm](https://helm.sh/).
@@ -14,7 +16,7 @@ This document explains how to install F5 NGINX Ingress Controller using [Helm](h
 - A [Kubernetes Version Supported by NGINX Ingress Controller](https://docs.nginx.com/nginx-ingress-controller/technical-specifications/#supported-kubernetes-versions)
 - Helm 3.0+.
 - If you’d like to use NGINX Plus:
-  - Get the NGINX Ingress Controller JWT and [create a license secret]({{< relref "installation/installing-nic/create-license-secret/" >}}).
+  - Get the NGINX Ingress Controller JWT and [create a license secret]({{< relref "/installation/create-license-secret.md" >}}).
   - Download the image using your NGINX Ingress Controller subscription certificate and key. View the [Get NGINX Ingress Controller from the F5 Registry]({{< relref "installation/nic-images/get-registry-image.md" >}}) topic.
   - The [Get the NGINX Ingress Controller image with JWT]({{< relref "installation/nic-images/get-image-using-jwt.md" >}}) topic describes how to use your subscription JWT token to get the image.
   - The [Build NGINX Ingress Controller]({{< relref "installation/build-nginx-ingress-controller.md" >}}) topic explains how to push an image to a private Docker registry.
@@ -31,6 +33,9 @@ If you do not use the custom resources that require those CRDs (which correspond
 ---
 
 ### Upgrade the CRDs
+
+{{< note >}} Please make sure to read the steps outlined in [Upgrade to V4](https://docs.nginx.com/nginx-ingress-controller/installation/installing-nic/upgrade-to-v4/#update-custom-resource-apiversion) before running the CRD upgrade and perform the steps if applicable.
+{{< /note >}}
 
 To upgrade the CRDs, pull the chart sources as described in [Pull the Chart](#pull-the-chart) and then run:
 
@@ -417,15 +422,15 @@ The following tables lists the configurable parameters of the NGINX Ingress Cont
 | **controller.appprotect.volumes** | Volumes for App Protect WAF v5. | [{"name": "app-protect-bd-config", "emptyDir": {}},{"name": "app-protect-config", "emptyDir": {}},{"name": "app-protect-bundles", "emptyDir": {}}] |
 | **controller.appprotect.enforcer.host** | Host that the App Protect WAF v5 Enforcer runs on. | "127.0.0.1" |
 | **controller.appprotect.enforcer.port** | Port that the App Protect WAF v5 Enforcer runs on. | 50000 |
-| **controller.appprotect.enforcer.image** | The image repository of the App Protect WAF v5 Enforcer. | private-registry.nginx.com/nap/waf-enforcer |
-| **controller.appprotect.enforcer.tag** | The tag of the App Protect WAF v5 Enforcer. | "5.4.0" |
-| **controller.appprotect.enforcer.digest** | The digest of the App Protect WAF v5 Enforcer. Takes precedence over tag if set. | "" |
-| **controller.appprotect.enforcer.pullPolicy** | The pull policy for the App Protect WAF v5 Enforcer image. | IfNotPresent |
+| **controller.appprotect.enforcer.image.repository** | The image repository of the App Protect WAF v5 Enforcer. | private-registry.nginx.com/nap/waf-enforcer |
+| **controller.appprotect.enforcer.image.tag** | The tag of the App Protect WAF v5 Enforcer. | "5.4.0" |
+| **controller.appprotect.enforcer.image.digest** | The digest of the App Protect WAF v5 Enforcer. Takes precedence over tag if set. | "" |
+| **controller.appprotect.enforcer.image.pullPolicy** | The pull policy for the App Protect WAF v5 Enforcer image. | IfNotPresent |
 | **controller.appprotect.enforcer.securityContext** | The security context for App Protect WAF v5 Enforcer container. | {} |
-| **controller.appprotect.configManager.image** | The image repository of the App Protect WAF v5 Configuration Manager. | private-registry.nginx.com/nap/waf-config-mgr |
-| **controller.appprotect.configManager.tag** | The tag of the App Protect WAF v5 Configuration Manager. | "5.4.0" |
-| **controller.appprotect.configManager.digest** | The digest of the App Protect WAF v5 Configuration Manager. Takes precedence over tag if set. | "" |
-| **controller.appprotect.configManager.pullPolicy** | The pull policy for the App Protect WAF v5 Configuration Manager image. | IfNotPresent |
+| **controller.appprotect.configManager.image.repository** | The image repository of the App Protect WAF v5 Configuration Manager. | private-registry.nginx.com/nap/waf-config-mgr |
+| **controller.appprotect.configManager.image.tag** | The tag of the App Protect WAF v5 Configuration Manager. | "5.4.0" |
+| **controller.appprotect.configManager.image.digest** | The digest of the App Protect WAF v5 Configuration Manager. Takes precedence over tag if set. | "" |
+| **controller.appprotect.configManager.image.pullPolicy** | The pull policy for the App Protect WAF v5 Configuration Manager image. | IfNotPresent |
 | **controller.appprotect.configManager.securityContext** | The security context for App Protect WAF v5 Configuration Manager container. | {"allowPrivilegeEscalation":false,"runAsUser":101,"runAsNonRoot":true,"capabilities":{"drop":["all"]}} |
 | **controller.appprotectdos.enable** | Enables the App Protect DoS module in the Ingress Controller. | false |
 | **controller.appprotectdos.enable** | Enables the App Protect DoS module in the Ingress Controller. | false |
