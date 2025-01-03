@@ -2041,7 +2041,7 @@ func TestValidateNginxIngressAnnotations(t *testing.T) {
 
 		{
 			annotations: map[string]string{
-				"nginx.org/listen-ports-ssl": "443,8443",
+				"nginx.org/listen-ports-ssl": "443,8443,44315",
 			},
 			specServices:          map[string]bool{},
 			isPlus:                false,
